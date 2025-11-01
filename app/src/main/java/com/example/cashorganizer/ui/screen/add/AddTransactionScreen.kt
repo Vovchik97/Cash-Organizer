@@ -12,20 +12,28 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cashorganizer.data.model.TransactionType
+import com.example.cashorganizer.ui.components.AddCategoryDialog
+import com.example.cashorganizer.ui.components.CategoryPickerDialog
+import com.example.cashorganizer.viewmodel.CategoryViewModel
 import com.example.cashorganizer.viewmodel.TransactionViewModel
 import java.util.Date
 
@@ -33,9 +41,14 @@ import java.util.Date
 @Composable
 fun AddTransactionScreen(viewModel: TransactionViewModel, onBack: () -> Unit) {
     var amountText by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("") }
+    var selectedCategoryName by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var type by remember { mutableStateOf(TransactionType.EXPENSE) }
+    var expanded by remember { mutableStateOf(false) }
+    var showAddCategoryDialog by remember { mutableStateOf(false) }
+
+    val categoryViewModel: CategoryViewModel = viewModel()
+    val categoriesState by categoryViewModel.categoriesFlow.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
@@ -62,12 +75,49 @@ fun AddTransactionScreen(viewModel: TransactionViewModel, onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Категория") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = selectedCategoryName,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Категория") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                    },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categoriesState
+                        .filter { it.type == type }
+                        .distinctBy { it.name }
+                        .forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat.name) },
+                                onClick = {
+                                    selectedCategoryName = cat.name
+                                    expanded = false
+                                }
+                            )
+                        }
+
+                    DropdownMenuItem(
+                        text = { Text("Добавить категорию…") },
+                        onClick = {
+                            showAddCategoryDialog = true
+                            expanded = false
+                        }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -89,11 +139,11 @@ fun AddTransactionScreen(viewModel: TransactionViewModel, onBack: () -> Unit) {
 
             Button(onClick = {
                 val amount = amountText.toDoubleOrNull() ?: 0.0
-                if (amount > 0 && category.isNotBlank()) {
+                if (amount > 0) {
                     viewModel.addTransaction(
                         amount = amount,
                         type = type,
-                        category = if (category.isBlank()) "Без категорий" else category,
+                        category = selectedCategoryName.ifBlank { "Буз категории" },
                         date = Date().time,
                         note = note.ifBlank { null }
                     )
@@ -105,6 +155,18 @@ fun AddTransactionScreen(viewModel: TransactionViewModel, onBack: () -> Unit) {
                 Text("Сохранить")
             }
         }
+    }
+
+    if (showAddCategoryDialog) {
+        AddCategoryDialog(
+            type = type,
+            onAdd = { name ->
+                categoryViewModel.addCategory(name, type)
+                selectedCategoryName = name
+                showAddCategoryDialog = false
+            },
+            onDismiss = { showAddCategoryDialog = false }
+        )
     }
 }
 

@@ -9,6 +9,7 @@ import com.example.cashorganizer.ui.screen.add.AddTransactionScreen
 import com.example.cashorganizer.ui.screen.edit.EditTransactionScreen
 import com.example.cashorganizer.ui.screen.main.MainScreen
 import com.example.cashorganizer.viewmodel.TransactionViewModel
+import androidx.compose.runtime.collectAsState
 
 
 sealed class Screen(val route: String) {
@@ -48,7 +49,7 @@ fun MainNavHost() {
             arguments = listOf(navArgument("transactionId") { type = NavType.LongType })
         ) { backStackEntry ->
             val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: - 1L
-            val transaction = viewModel.transactionFlow.value.find { it.id == transactionId }
+            val transaction = viewModel.transactionFlow.collectAsState().value.find { it.id == transactionId }
             if (transaction != null) {
                 EditTransactionScreen(
                     viewModel = viewModel,

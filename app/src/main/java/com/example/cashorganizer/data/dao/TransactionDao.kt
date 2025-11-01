@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.cashorganizer.data.model.CategoryEntity
 import com.example.cashorganizer.data.model.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +20,9 @@ interface TransactionDao {
 
     @Delete
     suspend fun delete(transaction: TransactionEntity)
+
+    @Query("SELECT * FROM transactions ORDER BY date DESC")
+    suspend fun getAllOnce(): List<TransactionEntity>
 
     @Query("SELECT * FROM transactions ORDER BY date DESC")
     fun getAllFlow(): Flow<List<TransactionEntity>>

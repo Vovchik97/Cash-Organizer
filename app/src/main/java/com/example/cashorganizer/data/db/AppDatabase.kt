@@ -5,17 +5,20 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.cashorganizer.data.dao.CategoryDao
 import com.example.cashorganizer.data.dao.TransactionDao
+import com.example.cashorganizer.data.model.CategoryEntity
 import com.example.cashorganizer.data.model.TransactionEntity
 import com.example.cashorganizer.data.model.TransactionType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [TransactionEntity::class], version = 1, exportSchema = false)
+@Database(entities = [TransactionEntity::class, CategoryEntity::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
+    abstract fun categoryDao(): CategoryDao
 
     companion object {
         @Volatile
@@ -30,32 +33,52 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                     .fallbackToDestructiveMigration()
                     .build().also { INSTANCE = it }
-
+                prepopulate(instance)
                 instance
             }
         }
 
         private fun prepopulate(db: AppDatabase) {
             CoroutineScope(Dispatchers.IO).launch {
-                val dao = db.transactionDao()
-                dao.insert(
-                    TransactionEntity(
-                        amount = 1500.0,
-                        type = TransactionType.INCOME,
-                        category = "Salary",
-                        date = System.currentTimeMillis(),
-                        note = "First salary"
+                val transactionDao = db.transactionDao()
+                val categoryDao = db.categoryDao()
+
+                val existingTransactions = transactionDao.getAllOnce()
+                if (existingTransactions.isEmpty()) {
+                    transactionDao.insert(
+                        TransactionEntity(
+                            amount = 1500.0,
+                            type = TransactionType.INCOME,
+                            category = "Salary",
+                            date = System.currentTimeMillis(),
+                            note = "First salary"
+                        )
                     )
-                )
-                dao.insert(
-                    TransactionEntity(
-                        amount = 200.0,
-                        type = TransactionType.EXPENSE,
-                        category = "Groceries",
-                        date = System.currentTimeMillis(),
-                        note = "Supermarket"
+                    transactionDao.insert(
+                        TransactionEntity(
+                            amount = 200.0,
+                            type = TransactionType.EXPENSE,
+                            category = "Groceries",
+                            date = System.currentTimeMillis(),
+                            note = "Supermarket"
+                        )
                     )
-                )
+                }
+
+                val existingCategories = categoryDao.getAllOnce()
+                if (existingCategories.isEmpty())
+                {
+                    val defaultCategories = listOf(
+                        CategoryEntity(name = "Salary", type = TransactionType.INCOME),
+                        CategoryEntity(name = "Gifts", type = TransactionType.INCOME),
+                        CategoryEntity(name = "Groceries", type = TransactionType.EXPENSE),
+                        CategoryEntity(name = "Transport", type = TransactionType.EXPENSE),
+                        CategoryEntity(name = "Entertainment", type = TransactionType.EXPENSE)
+                    )
+                    defaultCategories.forEach { category ->
+                        categoryDao.insert(category)
+                    }
+                }
             }
         }
     }
