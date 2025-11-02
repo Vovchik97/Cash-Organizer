@@ -37,8 +37,7 @@ fun TransactionItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(text = transaction.category, style = MaterialTheme.typography.titleSmall)
-            Text(text = transaction.note ?: "",
-                style = MaterialTheme.typography.bodySmall)
+            Text(text = transaction.note ?: "", style = MaterialTheme.typography.bodySmall)
         }
         Column(horizontalAlignment = Alignment.End) {
             Text(
