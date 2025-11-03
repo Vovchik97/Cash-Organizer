@@ -2,6 +2,8 @@ package com.example.cashorganizer.ui.screen
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Icon
@@ -21,9 +23,13 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.cashorganizer.ui.screen.add.AddTransactionScreen
 import com.example.cashorganizer.ui.screen.analytics.AnalyticsScreen
+import com.example.cashorganizer.ui.screen.budget.BudgetScreen
 import com.example.cashorganizer.ui.screen.edit.EditTransactionScreen
+import com.example.cashorganizer.ui.screen.goals.GoalsScreen
 import com.example.cashorganizer.ui.screen.main.MainScreen
 import com.example.cashorganizer.viewmodel.AnalyticsViewModel
+import com.example.cashorganizer.viewmodel.BudgetViewModel
+import com.example.cashorganizer.viewmodel.GoalViewModel
 import com.example.cashorganizer.viewmodel.TransactionViewModel
 
 sealed class Screen(val route: String) {
@@ -33,6 +39,8 @@ sealed class Screen(val route: String) {
         fun createRoute(transactionId: Long) = "edit/$transactionId"
     }
     object Analytics : Screen("analytics")
+    object Budget : Screen("budget")
+    object Goals : Screen("goals")
 }
 
 @Composable
@@ -62,6 +70,28 @@ fun MainNavHost() {
                     selected = currentDestination == Screen.Analytics.route,
                     onClick = {
                         navController.navigate(Screen.Analytics.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Build, contentDescription = null) },
+                    label = { Text("Бюджет") },
+                    selected = currentDestination == Screen.Budget.route,
+                    onClick = {
+                        navController.navigate(Screen.Budget.route) {
+                            launchSingleTop = true
+                        }
+                    }
+                )
+
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.CheckCircle, contentDescription = null) },
+                    label = { Text("Цели") },
+                    selected = currentDestination == Screen.Goals.route,
+                    onClick = {
+                        navController.navigate(Screen.Goals.route) {
                             launchSingleTop = true
                         }
                     }
@@ -115,6 +145,16 @@ fun MainNavHost() {
             composable(Screen.Analytics.route) {
                 val analyticsViewModel: AnalyticsViewModel = viewModel()
                 AnalyticsScreen(viewModel = analyticsViewModel)
+            }
+
+            composable(Screen.Budget.route) {
+                val budgetViewModel: BudgetViewModel = viewModel()
+                BudgetScreen(viewModel = budgetViewModel)
+            }
+
+            composable(Screen.Goals.route) {
+                val goalsViewModel: GoalViewModel = viewModel()
+                GoalsScreen(viewModel = goalsViewModel)
             }
         }
     }

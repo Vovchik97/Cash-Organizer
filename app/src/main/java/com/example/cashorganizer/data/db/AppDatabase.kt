@@ -5,20 +5,26 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.cashorganizer.data.dao.BudgetDao
 import com.example.cashorganizer.data.dao.CategoryDao
+import com.example.cashorganizer.data.dao.GoalDao
 import com.example.cashorganizer.data.dao.TransactionDao
+import com.example.cashorganizer.data.model.BudgetEntity
 import com.example.cashorganizer.data.model.CategoryEntity
+import com.example.cashorganizer.data.model.GoalEntity
 import com.example.cashorganizer.data.model.TransactionEntity
 import com.example.cashorganizer.data.model.TransactionType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [TransactionEntity::class, CategoryEntity::class], version = 2, exportSchema = false)
+@Database(entities = [TransactionEntity::class, CategoryEntity::class, BudgetEntity::class, GoalEntity::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun budgetDao(): BudgetDao
+    abstract fun goalDao(): GoalDao
 
     companion object {
         @Volatile
