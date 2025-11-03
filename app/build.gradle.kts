@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.cashorginizer"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -62,4 +62,6 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("co.yml:ycharts:2.1.0")
+    implementation("androidx.compose.material:material-icons-core")
 }
