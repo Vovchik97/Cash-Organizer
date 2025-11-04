@@ -21,4 +21,13 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): CategoryEntity?
+
+    @Query("DELETE FROM categories")
+    suspend fun deleteAll()
+
+    @Query("SELECT * FROM categories WHERE type = :type ORDER BY name ASC")
+    fun getByTypeFlow(type: String): Flow<List<CategoryEntity>>
+
+    @Query("SELECT * FROM categories WHERE name = :name LIMIT 1")
+    suspend fun getByName(name: String): CategoryEntity?
 }

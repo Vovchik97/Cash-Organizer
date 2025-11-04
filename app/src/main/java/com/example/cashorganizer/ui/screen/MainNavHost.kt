@@ -2,10 +2,10 @@ package com.example.cashorganizer.ui.screen
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -23,12 +23,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.cashorganizer.ui.screen.add.AddTransactionScreen
 import com.example.cashorganizer.ui.screen.analytics.AnalyticsScreen
-import com.example.cashorganizer.ui.screen.budget.BudgetScreen
+import com.example.cashorganizer.ui.screen.limits.LimitsScreen
 import com.example.cashorganizer.ui.screen.edit.EditTransactionScreen
 import com.example.cashorganizer.ui.screen.goals.GoalsScreen
 import com.example.cashorganizer.ui.screen.main.MainScreen
 import com.example.cashorganizer.viewmodel.AnalyticsViewModel
-import com.example.cashorganizer.viewmodel.BudgetViewModel
+import com.example.cashorganizer.viewmodel.LimitsViewModel
 import com.example.cashorganizer.viewmodel.GoalViewModel
 import com.example.cashorganizer.viewmodel.TransactionViewModel
 
@@ -76,8 +76,8 @@ fun MainNavHost() {
                 )
 
                 NavigationBarItem(
-                    icon = { Icon(Icons.Default.Build, contentDescription = null) },
-                    label = { Text("Бюджет") },
+                    icon = { Icon(Icons.Default.Lock, contentDescription = null) },
+                    label = { Text("Лимиты") },
                     selected = currentDestination == Screen.Budget.route,
                     onClick = {
                         navController.navigate(Screen.Budget.route) {
@@ -148,8 +148,8 @@ fun MainNavHost() {
             }
 
             composable(Screen.Budget.route) {
-                val budgetViewModel: BudgetViewModel = viewModel()
-                BudgetScreen(viewModel = budgetViewModel)
+                val limitsViewModel: LimitsViewModel = viewModel()
+                LimitsScreen(viewModel = limitsViewModel)
             }
 
             composable(Screen.Goals.route) {

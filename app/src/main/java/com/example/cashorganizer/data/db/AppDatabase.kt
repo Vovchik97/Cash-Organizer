@@ -5,11 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.cashorganizer.data.dao.BudgetDao
+import com.example.cashorganizer.data.dao.LimitsDao
 import com.example.cashorganizer.data.dao.CategoryDao
 import com.example.cashorganizer.data.dao.GoalDao
 import com.example.cashorganizer.data.dao.TransactionDao
-import com.example.cashorganizer.data.model.BudgetEntity
+import com.example.cashorganizer.data.model.LimitsEntity
 import com.example.cashorganizer.data.model.CategoryEntity
 import com.example.cashorganizer.data.model.GoalEntity
 import com.example.cashorganizer.data.model.TransactionEntity
@@ -18,12 +18,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@Database(entities = [TransactionEntity::class, CategoryEntity::class, BudgetEntity::class, GoalEntity::class], version = 3, exportSchema = false)
+@Database(entities = [TransactionEntity::class, CategoryEntity::class, LimitsEntity::class, GoalEntity::class], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
-    abstract fun budgetDao(): BudgetDao
+    abstract fun limitsDao(): LimitsDao
     abstract fun goalDao(): GoalDao
 
     companion object {
@@ -35,7 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "cash_orginizer_db"
+                    "cash_organizer_db"
                 )
                     .fallbackToDestructiveMigration()
                     .build().also { INSTANCE = it }
@@ -49,40 +49,46 @@ abstract class AppDatabase : RoomDatabase() {
                 val transactionDao = db.transactionDao()
                 val categoryDao = db.categoryDao()
 
-                val existingTransactions = transactionDao.getAllOnce()
-                if (existingTransactions.isEmpty()) {
-                    transactionDao.insert(
-                        TransactionEntity(
-                            amount = 1500.0,
-                            type = TransactionType.INCOME,
-                            category = "Salary",
-                            date = System.currentTimeMillis(),
-                            note = "First salary"
-                        )
-                    )
-                    transactionDao.insert(
-                        TransactionEntity(
-                            amount = 200.0,
-                            type = TransactionType.EXPENSE,
-                            category = "Groceries",
-                            date = System.currentTimeMillis(),
-                            note = "Supermarket"
-                        )
-                    )
+                // Очищаем старые категории и добавляем новые с русскими названиями
+                categoryDao.deleteAll()
+
+                val defaultCategories = listOf(
+                    // Доходы
+                    CategoryEntity(name = "Зарплата", type = TransactionType.INCOME),
+                    CategoryEntity(name = "Подарки", type = TransactionType.INCOME),
+                    CategoryEntity(name = "Инвестиции", type = TransactionType.INCOME),
+
+                    // Расходы
+                    CategoryEntity(name = "Продукты", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Транспорт", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Развлечения", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Связь", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Образование", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Подарки", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Путешествия", type = TransactionType.EXPENSE),
+                    CategoryEntity(name = "Бытовые расходы", type = TransactionType.EXPENSE),
+                )
+
+                defaultCategories.forEach { category ->
+                    categoryDao.insert(category)
                 }
 
-                val existingCategories = categoryDao.getAllOnce()
-                if (existingCategories.isEmpty())
-                {
-                    val defaultCategories = listOf(
-                        CategoryEntity(name = "Salary", type = TransactionType.INCOME),
-                        CategoryEntity(name = "Gifts", type = TransactionType.INCOME),
-                        CategoryEntity(name = "Groceries", type = TransactionType.EXPENSE),
-                        CategoryEntity(name = "Transport", type = TransactionType.EXPENSE),
-                        CategoryEntity(name = "Entertainment", type = TransactionType.EXPENSE)
-                    )
-                    defaultCategories.forEach { category ->
-                        categoryDao.insert(category)
+                // Обновляем существующие транзакции с новыми названиями категорий
+                val existingTransactions = transactionDao.getAllOnce()
+                val categoryMap = mapOf(
+                    "Salary" to "Зарплата",
+                    "Gifts" to "Подарки",
+                    "Groceries" to "Продукты",
+                    "Transport" to "Транспорт",
+                    "Entertainment" to "Развлечения"
+                )
+
+                existingTransactions.forEach { transaction ->
+                    val newCategory = categoryMap[transaction.category] ?: transaction.category
+                    if (newCategory != transaction.category) {
+                        transactionDao.update(
+                            transaction.copy(category = newCategory)
+                        )
                     }
                 }
             }
